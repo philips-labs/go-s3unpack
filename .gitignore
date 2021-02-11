@@ -1,0 +1,11 @@
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+/*.env
+/*.yml
+profile_file.out
+config.yml
+/build/
