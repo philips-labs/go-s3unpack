@@ -3,6 +3,8 @@ package main
 import (
 	"archive/zip"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"github.com/cheggaaa/pb"
 	"github.com/cloudfoundry-community/gautocloud"
@@ -10,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/minio/minio-go/v7"
 	"github.com/philips-software/gautocloud-connectors/hsdp"
+	"os"
 	"path/filepath"
 )
 
@@ -30,6 +33,12 @@ func main() {
 	e.POST("/unpack", unpackHandler(svc))
 
 	_ = e.Start(":8080")
+}
+
+func tempFileName(prefix, suffix string) string {
+	randBytes := make([]byte, 16)
+	rand.Read(randBytes)
+	return filepath.Join(os.TempDir(), prefix+hex.EncodeToString(randBytes)+suffix)
 }
 
 func unpackHandler(svc *hsdp.S3MinioClient) echo.HandlerFunc {
@@ -54,7 +63,24 @@ func unpackHandler(svc *hsdp.S3MinioClient) echo.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("Stat: %v", err)
 		}
-		reader, err := zip.NewReader(object, stats.Size)
+
+		tempZip := tempFileName("download", ".zip")
+		fmt.Printf("Download local: %s\n", tempZip)
+		err = svc.FGetObject(context.Background(), svc.Bucket, unpackRequest.SourceFile, tempZip, minio.GetObjectOptions{})
+		if err != nil {
+			fmt.Printf("Error downloading local: %v\n", err)
+			return err
+		}
+		defer func() {
+			_ = os.Remove(tempZip)
+		}()
+		fmt.Printf("Done...\n")
+		zipObject, err := os.Open(tempZip)
+		if err != nil {
+			fmt.Printf("Error opening local: %v\n", err)
+			return err
+		}
+		reader, err := zip.NewReader(zipObject, stats.Size)
 		if err != nil {
 			return fmt.Errorf("zip.NewReader: %v", err)
 		}
@@ -77,10 +103,12 @@ func unpackHandler(svc *hsdp.S3MinioClient) echo.HandlerFunc {
 			})
 			if err != nil {
 				fmt.Printf("ERROR: PutObject: %v\n", err)
+				progress.Finish()
 				_ = src.Close()
 				continue
 			}
 			fmt.Printf("INFO: %v\n", info)
+			progress.Finish()
 			_ = src.Close()
 		}
 		return nil
