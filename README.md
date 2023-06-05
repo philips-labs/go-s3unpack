@@ -18,7 +18,7 @@ Exposes an endpoint `/unpack` which accepts POST requests of the following JSON:
 ```
 
 # Deployment
-This app is compatible with HSDP Cloud foundry and expects an S3 bucket to be bound. The app will connec to this bucket and listen for `POST /unpack` requests.
+This app is compatible with HSDP Cloud foundry and expects an S3 bucket to be bound. The app will connect to this bucket and listen for `POST /unpack` requests.
 
 # Contact / Getting help
 
