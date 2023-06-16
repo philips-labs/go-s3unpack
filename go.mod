@@ -7,7 +7,7 @@ require (
 	github.com/cloudfoundry-community/gautocloud v1.3.0
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/labstack/echo/v4 v4.10.2
-	github.com/minio/minio-go/v7 v7.0.56
+	github.com/minio/minio-go/v7 v7.0.57
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/philips-software/gautocloud-connectors v0.7.0
 	gopkg.in/VividCortex/ewma.v1 v1.1.1 // indirect
